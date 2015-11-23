@@ -162,3 +162,10 @@ def make_terms(strings):
     tuples = [(tokenize(s), _(s.decode('utf-8'))) for s in strings if s]
     return [SimpleTerm(value=t[1], token=t[0], title=t[1])
             for t in tuples]
+
+def make_keyvalue_terms(strings):
+    """
+    """
+    tuples = [(tokenize(s.split('&&')[0]), _(s.split('&&')[1].decode('utf-8'))) for s in strings if s]
+    return [SimpleTerm(value=t[1], token=t[0], title=t[1])
+            for t in tuples]

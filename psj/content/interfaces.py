@@ -54,6 +54,12 @@ class IExternalVocabConfig(Interface):
         required=True,
         )
 
+    vtype = TextLine(
+        title=u'Vocabulary type',
+        description=u'What type of vocabulary is used.',
+        required=False,
+        )
+    
 
 class IRedisStoreConfig(Interface):
     """Configuration for connections to a Redis store.

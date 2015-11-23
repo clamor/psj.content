@@ -64,8 +64,13 @@ class ExternalVocabBinder(object):
         path = util.get('path', None)
         if not path or not os.path.isfile(path):
             return SimpleVocabulary.fromValues([])
-        self.vocab = SimpleVocabulary(
-            make_terms([line.strip() for line in open(path, 'r')]))
+        vtype = util.get('vtype', None)
+        if vtype == 'keyvalue':
+            self.vocab = SimpleVocabulary(
+                make_keyvalue_terms([line.strip() for line in open(path, 'r')]))
+        else:
+            self.vocab = SimpleVocabulary(
+                make_terms([line.strip() for line in open(path, 'r')]))
         return self.vocab
 
 
