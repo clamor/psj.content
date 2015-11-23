@@ -28,7 +28,7 @@ from zope.component import queryUtility
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from psj.content.interfaces import IExternalVocabConfig, IRedisStoreConfig
-from psj.content.utils import make_terms, tokenize, untokenize, to_string
+from psj.content.utils import make_terms, make_keyvalue_terms, tokenize, untokenize, to_string
 
 
 class ExternalVocabBinder(object):

@@ -166,6 +166,6 @@ def make_terms(strings):
 def make_keyvalue_terms(strings):
     """
     """
-    tuples = [(tokenize(s.split('&&')[0]), _(s.split('&&')[1].decode('utf-8'))) for s in strings if s]
-    return [SimpleTerm(value=t[1], token=t[0], title=t[1])
+    tuples = [(s.split('&&')[0], _(s.split('&&')[1].decode('utf-8'))) for s in strings if s]
+    return [SimpleTerm(value=t[0], token=t[0], title=t[1])
             for t in tuples]

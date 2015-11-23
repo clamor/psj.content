@@ -37,42 +37,42 @@
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-languages.csv" name="psj.content.Languages" />
+    <psj:external-vocab path="../../etc/sample-languages.csv" name="psj.content.Languages" vtype="value"/>
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-institutes.csv" name="psj.content.Institutes" />
+    <psj:external-vocab path="../../etc/sample-institutes.csv" name="psj.content.Institutes" vtype="value"/>
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-licenses.csv" name="psj.content.Licenses" />
+    <psj:external-vocab path="../../etc/sample-licenses.csv" name="psj.content.Licenses" vtype="value" />
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-subjectgroups.csv" name="psj.content.Subjectgroup" />
+    <psj:external-vocab path="../../etc/sample-subjectgroups.csv" name="psj.content.Subjectgroup" vtype="value" />
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-ddc-zeit.csv" name="psj.content.DDCZeit" />
+    <psj:external-vocab path="../../etc/sample-ddc-zeit.csv" name="psj.content.DDCZeit" vtype="keyvalue" />
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-ddc-sach.csv" name="psj.content.DDCSach" />
+    <psj:external-vocab path="../../etc/sample-ddc-sach.csv" name="psj.content.DDCSach" vtype="keyvalue" />
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-ddc-geo.csv" name="psj.content.DDCGeo" />
+    <psj:external-vocab path="../../etc/sample-ddc-geo.csv" name="psj.content.DDCGeo" vtype="keyvalue" />
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-gnd-ids.csv" name="psj.content.GNDIds" />
+    <psj:external-vocab path="../../etc/sample-gnd-ids.csv" name="psj.content.GNDIds" vtype="keyvalue" />
   </configure>
 
 </configure>

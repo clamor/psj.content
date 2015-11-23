@@ -25,7 +25,7 @@ from psj.content.interfaces import (
     )
 
 
-def external_vocab_conf(context, path, name):
+def external_vocab_conf(context, path, name, vtype):
     """Handler for ZCML ``external-vocab`` directive.
 
     Register a named global utility under IExternalVocabConfig, named
@@ -53,7 +53,7 @@ def external_vocab_conf(context, path, name):
         discriminator=('utility', IExternalVocabConfig, name),
         callable=handler,
         args=('registerUtility',
-              {'path': path, 'name': name},
+              {'path': path, 'name': name, 'vtype': vtype, },
               IExternalVocabConfig,
               name)
         )
