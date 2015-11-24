@@ -52,7 +52,7 @@
 
   <configure xmlns="http://namespaces.zope.org/zope"
              xmlns:psj="http://namespaces.zope.org/psj">
-    <psj:external-vocab path="../../etc/sample-subjectgroups.csv" name="psj.content.Subjectgroup" vtype="value" />
+    <psj:external-vocab path="../../subjectgroups.csv" name="psj.content.Subjectgroup" vtype="keyvalue" />
   </configure>
 
   <configure xmlns="http://namespaces.zope.org/zope"
