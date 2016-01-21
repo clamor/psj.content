@@ -226,22 +226,6 @@ class RedisAutocompleteSource(RedisSource):
         normalized, title = to_string(entry).split(self.separator, 1)
         return normalized.encode("utf-8"), title.decode("utf-8")
 
-    def __contains__(self, value):
-        """Tell wether `value` is in the associated ZSET.
-
-        This is the case, when we can find a ZSET entry that starts with
-        the given `value` followed by ``&&``. A `value` to be found
-        therfore must not contain a complete ZSET entry nor even the
-        `separator` string.
-
-        For example: the value `foo (1)` is found, if the associated
-        ZSET contains an entry "foo (1)&&does-not-matter" or similar.
-        """
-        search_term = "[%s%s" % (to_string(value), self.separator)
-        result = self._get_client().zlexcount(
-            self.zset_name, search_term, search_term + chr(255))
-        return result and True or False
-
     def __iter__(self):
         """Required by IIterableVocabulary.
 
@@ -259,33 +243,25 @@ class RedisAutocompleteSource(RedisSource):
         """
         return self._get_client().zcard(self.zset_name)
 
-    def getTerm(self, value):
-        """Return the ITerm object for term `value`.
+    def getTerm(self, key):
+        """Return the ITerm object for term `key`.
 
-        Raises `LookupError` if no such value can be found in Redis
+        Raises `LookupError` if no such key can be found in Redis
         Store.
 
-        Returns ITerm of `value`, where `value` is expected to be an
-        existing normalized string at beginning of an entry in a Redis
-        store ZSET.
+        Given keys are treated as tokens.
 
-        The `title` of any resulting term will be the latter part of the
-        respective Redis Store entry.
+        The `title` of any resulting term will is constructed from key
+        and value as::
 
-        Say we have a ZSET with an entry::
+           "<VALUE> (<KEY>)"
 
-          "foo(1-1)&&The Foo (1-1)",
-
-        then the term value and token (both are equal) will be 'foo(1-1)'
-        while the Title will be u'The Foo (1-1)'.
         """
-        search_term = "[%s%s" % (to_string(value), self.separator)
-        db_entries = self._get_client().zrangebylex(
-            self.zset_name, search_term, search_term + chr(255))
-        if len(db_entries) == 0:
-            raise LookupError('No such term: %s' % value)
-        token, title = self._split_entry(db_entries[0])
-        return SimpleTerm(token, token, title)
+        value = self._get_client().get(key)
+        if value is None:
+            raise LookupError('No such term: %s' % key)
+        title = "%s (%s)" % (value.decode("utf-8"), key)
+        return SimpleTerm(key, key, title)
 
     def getTermByToken(self, token):
         """Get ITerm with `token`.
@@ -308,8 +284,9 @@ class RedisAutocompleteSource(RedisSource):
         db_entries = self._get_client().zrangebylex(
             self.zset_name, search_term, "+", 0, 100)
         for entry in db_entries:
-            token, title = self._split_entry(entry)
-            yield SimpleTerm(token, token, title)
+            normalized, token = self._split_entry(entry)
+            term = self.getTerm(token)
+            yield term
 
 
 language_source = ExternalVocabBinder(u'psj.content.Languages')

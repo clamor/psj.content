@@ -266,6 +266,7 @@ class UntokenizeTest(unittest.TestCase):
         result = untokenize(tokenize('äöü'))
         self.assertEqual(result, 'äöü')
 
+
 class MakeTermsTests(unittest.TestCase):
     # tests for the make_terms function
 

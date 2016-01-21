@@ -96,12 +96,12 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
             }
         redis_cli = redis.StrictRedis(
             host=conf['host'], port=conf['port'], db=conf['db'])
-        redis_cli.zadd(
-            u'gnd-autocomplete', 0, "Vocab Entry 1&&Vocab Entry Title 1")
-        redis_cli.zadd(
-            u'gnd-autocomplete', 0, "Vocab Entry 2&&Vocab Entry Title 2")
-        redis_cli.zadd(
-            u'gnd-autocomplete', 0, "Vocab Entry 3&&Vocab Entry Title 3")
+        redis_cli.zadd(u'gnd-autocomplete', 0, "vocab entry 1&&1")
+        redis_cli.zadd(u'gnd-autocomplete', 0, "vocab entry 2&&2")
+        redis_cli.zadd(u'gnd-autocomplete', 0, "vocab entry 3&&3")
+        redis_cli.set("1", "Vocab Entry Title 1")
+        redis_cli.set("2", "Vocab Entry Title 2")
+        redis_cli.set("3", "Vocab Entry Title 3")
         gsm.registerUtility(
             conf, provided=IRedisStoreConfig, name="psj.content.redis_conf")
         return redis_cli
@@ -115,6 +115,13 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
             getGlobalSiteManager().unregisterUtility(
                 util, provided=IRedisStoreConfig, name=name)
         super(MetadataBehaviorsTests, self).tearDown()
+
+    def create_behavioral_doc(self):
+        # Create a dummy document for which bahaviors can be assigned
+        doc = DummyDocument(b'doc')
+        provideAdapter(TestingAssignable)
+        self.assertEqual(IDexterityContent.providedBy(doc), True)
+        return doc
 
     def behavior_installed(self, name, iface):
         # make sure we get the desired behavior after install
@@ -130,15 +137,12 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
     def text_behavior_usable(self, attr_name, iface):
         # we can attach a behavior to a content type and modify some
         # text/textline attribute
-        doc = DummyDocument(b'doc')
-        provideAdapter(TestingAssignable)
-        self.assertEqual(IDexterityContent.providedBy(doc), True)
+        doc = self.create_behavioral_doc()
         behavior = iface(doc, None)
         self.assertTrue(behavior is not None)
         self.assertEqual(True, hasattr(behavior, attr_name))
         # we can assign valid values to doc through the behavior
         setattr(behavior, attr_name, u'John Cleese')
-        #behavior.psj_author = u'John Cleese'
         self.assertEqual(u'John Cleese', getattr(doc, attr_name))
         # numbers are not accepted as Text/TextLines
         self.assertRaises(
@@ -151,9 +155,7 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
     def textlist_behavior_usable(self, attr_name, iface):
         # we can attach a behavior to a content type and modify some
         # list of text/textline attribute
-        doc = DummyDocument(b'doc')
-        provideAdapter(TestingAssignable)
-        self.assertEqual(IDexterityContent.providedBy(doc), True)
+        doc = self.create_behavioral_doc()
         behavior = iface(doc, None)
         self.assertTrue(behavior is not None)
         self.assertEqual(True, hasattr(behavior, attr_name))
@@ -166,9 +168,7 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
         return
 
     def choice_behavior_usable(self, attr_name, iface):
-        doc = DummyDocument(b'doc')
-        provideAdapter(TestingAssignable)
-        self.assertEqual(IDexterityContent.providedBy(doc), True)
+        doc = self.create_behavioral_doc()
         self.create_external_vocab_from_choice(iface, attr_name)
         behavior = iface(doc, None)
         self.assertTrue(behavior is not None)
@@ -184,9 +184,7 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
         return
 
     def choicelist_behavior_usable(self, attr_name, iface):
-        doc = DummyDocument(b'doc')
-        provideAdapter(TestingAssignable)
-        self.assertEqual(IDexterityContent.providedBy(doc), True)
+        doc = self.create_behavioral_doc()
         self.create_external_vocab_from_choicelist(iface, attr_name)
         behavior = iface(doc, None)
         self.assertTrue(behavior is not None)
@@ -194,6 +192,23 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
         # we can assign valid values to doc through the behavior
         setattr(behavior, attr_name, [u'Vocab Entry 1', ])
         self.assertEqual([u'Vocab Entry 1', ], getattr(doc, attr_name))
+        # values not in the vocab are rejected
+        self.assertRaises(
+            WrongContainedType,
+            setattr,
+            behavior, attr_name, [u'Invalid Entry', ])
+        return
+
+    def enum_choicelist_behavior_usable(self, attr_name, iface):
+        # test choicelists that contain "enumerating" choices, i.e.
+        # sources with key/value pairs and numbers as keys.
+        doc = self.create_behavioral_doc()
+        behavior = iface(doc, None)
+        self.assertTrue(behavior is not None)
+        self.assertEqual(True, hasattr(behavior, attr_name))
+        # we can assign valid values to doc through the behavior
+        setattr(behavior, attr_name, ['1', ])
+        self.assertEqual(['1', ], getattr(doc, attr_name))
         # values not in the vocab are rejected
         self.assertRaises(
             WrongContainedType,
@@ -301,4 +316,4 @@ class MetadataBehaviorsTests(ExternalVocabSetup, unittest.TestCase):
 
     def test_gndterms_usable(self):
         self.setup_redis_autocomplete()
-        self.choicelist_behavior_usable(b'psj_gndterms', IPSJGNDTerms)
+        self.enum_choicelist_behavior_usable(b'psj_gndterms', IPSJGNDTerms)

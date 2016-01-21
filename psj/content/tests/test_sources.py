@@ -159,10 +159,14 @@ class RedisAutocompleteSourceTests(unittest.TestCase):
         port = settings['port']
         self.redis = redis.StrictRedis(host='localhost', port=port, db=0)
         self.redis.flushdb()
-        self.redis.zadd(u'autocomplete-foo', 0, "foo (1)&&Foo (1)")
-        self.redis.zadd(u'autocomplete-foo', 0, "for (2)&&For (2)")
-        self.redis.zadd(u'autocomplete-foo', 0, "baz (3)&&Baz (3)")
-        self.redis.zadd(u'autocomplete-foo', 0, "bar (4)&&Bar (4)")
+        self.redis.zadd(u"autocomplete-foo", 0, "foo&&1")
+        self.redis.zadd(u"autocomplete-foo", 0, "for&&2")
+        self.redis.zadd(u"autocomplete-foo", 0, "baz&&3")
+        self.redis.zadd(u"autocomplete-foo", 0, "bar&&4")
+        self.redis.set("1", "Foo")
+        self.redis.set("2", "For")
+        self.redis.set("3", "Baz")
+        self.redis.set("4", "Bär")
         self.redis_host = settings['bind']
         self.redis_port = settings['port']
 
@@ -173,6 +177,7 @@ class RedisAutocompleteSourceTests(unittest.TestCase):
         # make sure, basic redis store test setup works
         r = self.redis
         assert r.zcard('autocomplete-foo') == 4
+        assert r.get("4") == "Bär"
 
     def test_iface(self):
         # make sure we fullfill promised interfaces
@@ -193,38 +198,37 @@ class RedisAutocompleteSourceTests(unittest.TestCase):
 
     def test_get_contained(self):
         # we can tell whether a certain key is stored in redis store
-        self.redis.zadd(u'autocomplete-foo', 0, "bär (5)&&Bär (4)")
+        self.redis.zadd(u'autocomplete-foo', 0, "bär&&5")
+        self.redis.set(u"5", u"Bär")
         source = RedisAutocompleteSource(
             host=self.redis_host, port=self.redis_port,
             zset_name="autocomplete-foo")
-        assert u'foo (1)' in source
-        assert 'foo (1)' in source
-        assert u'bär (5)' in source
-        assert 'bär (5)' in source
+        assert u'1' in source
+        assert '1' in source
+        assert u'5' in source
+        assert '5' in source
 
     def test_get_uncontained(self):
         # we can tell if a certain key is not in redis store
         source = RedisAutocompleteSource(
             host=self.redis_host, port=self.redis_port,
             zset_name="autocomplete-foo")
-        assert u'bar' not in source
-        assert 'bar' not in source
-        assert u'bär' not in source
-        assert 'bär' not in source
+        assert u'5' not in source
+        assert '5' not in source
 
     def test_get_term_contained(self):
         # we can get contained terms as ITerm
         source = RedisAutocompleteSource(
             host=self.redis_host, port=self.redis_port,
             zset_name="autocomplete-foo")
-        term = source.getTerm(u'foo (1)')
+        term = source.getTerm(u'4')
         assert ITitledTokenizedTerm.providedBy(term)
         self.assertTrue(hasattr(term, 'value'))
-        self.assertEqual(term.value, u'foo (1)')
+        self.assertEqual(term.value, u'4')
         self.assertTrue(hasattr(term, 'token'))
-        self.assertEqual(term.token, u'foo (1)')
+        self.assertEqual(term.token, u'4')
         self.assertTrue(hasattr(term, 'title'))
-        self.assertEqual(term.title, u'Foo (1)')
+        self.assertEqual(term.title, u'Bär (4)')
 
     def test_len(self):
         # we can get the size of a ZSET providing our terms
@@ -265,7 +269,7 @@ class RedisAutocompleteSourceTests(unittest.TestCase):
         source = RedisAutocompleteSource(
             host=self.redis_host, port=self.redis_port,
             zset_name="autocomplete-foo")
-        result = source.getTermByToken(u'foo (1)')
+        result = source.getTermByToken(u'1')
         self.assertTrue(ITitledTokenizedTerm.providedBy(result))
 
     def test_search(self):
@@ -278,7 +282,7 @@ class RedisAutocompleteSourceTests(unittest.TestCase):
         result3 = [x.title for x in source.search("for")]
         result4 = [x.title for x in source.search("For (2)")]
         self.assertEqual(
-            result1, [u'Bar (4)', u'Baz (3)', u'Foo (1)', u'For (2)'])
+            result1, [u'Bär (4)', u'Baz (3)', u'Foo (1)', u'For (2)'])
         self.assertEqual(result2, [u"Foo (1)", u"For (2)"])
         self.assertEqual(result3, [u"For (2)"])
         self.assertEqual(result4, [u"For (2)"])
@@ -434,8 +438,10 @@ class ExternalRedisAutocompleteBinderTests(unittest.TestCase):
         port = settings['port']
         self.redis = redis.StrictRedis(host='localhost', port=port, db=0)
         self.redis.flushdb()
-        self.redis.zadd(u'autocomplete-foo', 0, u'foo&&Foo')
-        self.redis.zadd(u'autocomplete-foo', 0, u'bar&&Bar')
+        self.redis.zadd(u'autocomplete-foo', 0, u'foo&&1')
+        self.redis.zadd(u'autocomplete-foo', 0, u'bar&&2')
+        self.redis.set("1", "Foo")
+        self.redis.set("2", "Bar")
         self.redis_host = settings['bind']
         self.redis_port = settings['port']
 
@@ -472,9 +478,9 @@ class ExternalRedisAutocompleteBinderTests(unittest.TestCase):
         binder = ExternalRedisAutocompleteBinder(
             name='my-test-redis-conf', zset_name='autocomplete-foo')
         source = binder(context=None)
-        self.assertRaises(LookupError, source.getTerm, u'foo')
+        self.assertRaises(LookupError, source.getTerm, u'1')
         assert isinstance(source, RedisSource)
-        assert u'foo' not in source
+        assert u'1' not in source
 
     def test_external_redis_binder_valid_conf(self):
         # with a valid redis conf, we get valid vocabs
@@ -482,32 +488,34 @@ class ExternalRedisAutocompleteBinderTests(unittest.TestCase):
         binder = ExternalRedisAutocompleteBinder(
             name='my-test-redis-conf', zset_name='autocomplete-foo')
         source = binder(context=None)
-        term = source.getTerm(u'foo')
+        term = source.getTerm(u'1')
         assert isinstance(source, RedisSource)
-        assert u'foo' in source
-        assert u'bar' in source
-        assert u'baz' not in source
-        self.assertEqual(term.value, u'foo')
-        self.assertEqual(term.title, u'Foo')
+        assert u'1' in source
+        assert u'2' in source
+        assert u'4' not in source
+        self.assertEqual(term.value, u'1')
+        self.assertEqual(term.title, u'Foo (1)')
 
-    def test_external_redid_binder_no_iter(self):
+    def test_external_redis_binder_no_iter(self):
         # for huge datasets, redis autocomplete binders forbids iter()
         self.register_redis_conf(name='my-test-redis-conf')
         binder = ExternalRedisAutocompleteBinder(
             name='my-test-redis-conf', zset_name='autocomplete-foo')
         source = binder(context=None)
-        term = source.getTerm(u'foo')
+        term = source.getTerm(u'1')
         assert term is not None               # we can get single terms...
         assert len([x for x in source]) == 0    # ...but not _all_ terms.
         assert source.allow_iter is False
 
     def test_gndterms_src_w_vocab(self):
         # we can use the gndterms source
-        self.redis.zadd(u'gnd-autocomplete', 0, u'foo&&Foo')
-        self.redis.zadd(u'gnd-autocomplete', 0, u'bar&&Bar')
+        self.redis.zadd(u'gnd-autocomplete', 0, u'foo&&1')
+        self.redis.zadd(u'gnd-autocomplete', 0, u'bar&&2')
+        self.redis.set("1", "Foo")
+        self.redis.set("2", "Bar")
         self.register_redis_conf(name=u'psj.content.redis_conf')
         gndterms_source.vocab = None  # avoid cached entries
         src = gndterms_source(context=None)
         assert isinstance(src, RedisAutocompleteSource)
-        assert u'foo' in src
-        assert u'baz' not in src
+        assert u'1' in src
+        assert u'3' not in src
