@@ -1,0 +1,12 @@
+<link href="gndbeacon.css" rel="stylesheet" type="text/css" tal:attributes="href string:${context/portal_url}/++resource++gndbeacon.css" />
+<script type="text/javascript" src="script.js" tal:attributes="src string:${context/portal_url}/++resource++seealso.js"></script>
+<div>
+  <h3>BEACON</h3>
+  <div tal:repeat="gnd here/psj_gndterms">
+    <h4 tal:content="gnd" />
+    <ul class="list-default">
+    <li class="item-default"> <p title="124730760" class="pndaks seealso-ul" tal:attributes="title gnd" />
+    </li>
+    </ul>
+  </div>
+</div>
