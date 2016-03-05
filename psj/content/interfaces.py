@@ -129,3 +129,11 @@ class IPSJGNDTermsGetter(Interface):
 
         `ids` is expected to be an iterable as well.
         """
+
+class IPSJGNDTermsLayer(Interface):
+    """Marker interface for the Browserlayer
+    """
+
+class IHasGNDTerms(Interface):
+    """Content with GND Terms
+    """

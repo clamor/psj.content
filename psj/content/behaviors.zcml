@@ -3,6 +3,7 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     xmlns:grok="http://namespaces.zope.org/grok"
     xmlns:zcml="http://namespaces.zope.org/zcml"
+    xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="psj.content">
 
     <include package="plone.behavior" file="meta.zcml" />
@@ -78,7 +79,32 @@
         description="GND Terms"
         provides=".behaviors.IPSJGNDTerms"
         factory=".behaviors.PSJGNDTerms"
+        marker=".interfaces.IHasGNDTerms"
         />
+
+    <browser:viewlet 
+      name="gndbeacon.viewlet " 
+      manager="plone.app.layout.viewlets.interfaces.IBelowContent" 
+      template="templates/gndbeacon_viewlet.pt" 
+      layer=".interfaces.IPSJGNDTermsLayer" 
+      for=".interfaces.IHasGNDTerms" 
+      permission="zope2.View" 
+      />
+
+    <browser:resource
+      name="gndbeacon.css"
+      file="resources/gndbeacon.css"
+      />
+
+    <browser:resource
+      name="seealso.js"
+      file="resources/seealso.js"
+      />
+
+    <browser:resource
+      name="findbuch.js"
+      file="resources/findbuch.js"
+      />
 
     <plone:behavior
 	title="PSJAddRetro"
