@@ -29,7 +29,7 @@ from plone.dexterity.interfaces import IDexterityContent
 from plone.directives.form import (
     Schema, fieldset, IFormFieldProvider, mode, primary)
 from plone.formwidget.autocomplete import (
-    AutocompleteMultiFieldWidget, AutocompleteFieldWidget)
+    AutocompleteMultiFieldWidget)
 from plone.formwidget.contenttree import ObjPathSourceBinder
 from plone.namedfile.field import NamedBlobFile as NamedBlobFileField
 from plone.namedfile.file import NamedBlobFile

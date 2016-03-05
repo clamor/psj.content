@@ -21,13 +21,34 @@ keys should be separated by ``&&``.
 Requires `dinsort` package. If you are in an active `virtualenv` you
 can install everything with::
 
-  $ pip install dinsort
+  (venv)$ pip install dinsort
 
 You need a file ``identifiers.txt.gz`` with all entries to
 normalize. Results are written to ``terms.txt``.
 
+We expect lines in ``identifiers.txt.gz`` to look like this::
+
+   123&&Term 1
+   123-4&&Other Term with Annotations
+   221&&Last sample line
+
+i.e. some identifier (not neccessarily only numbers), followed by
+``&&`` followed by the real entry text. If your input file has a
+different name or uses a different separator string, then you can
+tweak these settings in the ``normalize.py`` header.
+
+You can run ``normalize.py`` like this::
+
+  (venv)$ python normalize.py
+
 The result file can be used as input for really feeding a redis DB
-with fill-redis.py.
+with ``fill-redis.py``.
+
+It will contain three "columns" of which the inner one holds
+normalized versions of terms.
+
+"Normalizing" here means: filtering strings through `dinsort` and
+stripping any ``<``, ``>`` chars.
 
 
 fill-redis.py

@@ -277,12 +277,20 @@ class RedisAutocompleteSource(RedisSource):
 
         "normalized" means what `dinsort` defines as normalizing.
 
-        We will delver at most 100 entries.
+        We will delver at most 10 entries. Why so few? Because the
+        normally used autocomplete widget only displays 10 items and
+        does its own sorting. This led to the following unfortunate
+        possibility: if a term contains umlauts and is sorted by
+        autocomplete widget relatively late, then the term might not
+        show up in the first ten items displayed and is therefore
+        unpickable at all. Giving 10 entries, we can be sure that the
+        (in *our* ordering) first picked term is displayed by the
+        autocomplete widget.
         """
         query_string = normalize(query_string)
         search_term = "(%s" % to_string(query_string)
         db_entries = self._get_client().zrangebylex(
-            self.zset_name, search_term, "+", 0, 100)
+            self.zset_name, search_term, "+", 0, 10)
         for entry in db_entries:
             normalized, token = self._split_entry(entry)
             term = self.getTerm(token)
